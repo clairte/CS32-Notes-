@@ -314,6 +314,10 @@
 
     - Draw pictures! 
 
+    - Don't do things in the wrong order 
+
+        - Advice: set values in a new nodes first (usually)
+
     - Whenever you write p->... make sure: 
 
         - `p` has a well-deinfed value (i.e. it's not uninitialized)
