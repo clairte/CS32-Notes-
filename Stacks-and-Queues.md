@@ -1,6 +1,13 @@
+# Stacks and Queues 
 ## Introduction 
 
 - Stacks and queues are higher level data structures 
+
+    - You can implement a stack as an array or as a linked-list 
+
+    - Not as fundamental 
+
+        - You can't implement a linked list as an array, or implement an array as a linked list 
 
 - Can be implemented by an array, or something else...
 
@@ -65,3 +72,636 @@
     - Using a stack tells the user how to use the data structure -> limits the possiblity -> easier reading 
 
 ### Stack operations 
+
+1. Create an empty strack 
+
+2. Push an item onto the stack (add)
+
+    - Possibilites of failure
+        - If fixed-size: what if we run out of room -> could fail 
+        - If resizable: that's fine
+
+3. Pop an item from the stack (remove)
+
+    - Possibilities of failure 
+        - What if the stack is empty?
+
+4. Look at the top item on the stack (top of stack is the active end of stack)
+
+    - Possibilities of failure 
+        - What if the stack is empty?
+
+5. Is the stack empty? 
+
+> Optional items: 
+
+6. Look at any item in the stack 
+
+7. How many items are in the stack 
+
+### Stack in C++ Library 
+
+```
+#include <stack>
+using namespace std; 
+
+//Create an empty stack 
+stack<int> s; //in <>: the type of data you want in a stack 
+
+//Add items 
+s.push(10); 
+s.push(20); 
+
+//Visualization of stack 
+s: ===> 
+10 20 
+
+//Check top of stack 
+cout << s.top() << endl; //20 
+
+//Remove item 
+s.pop(); 
+
+//Visualization 
+s: ===> 
+10 
+
+if (s.empty())
+{
+    cout << "Stack is empty!" << endl; 
+}
+else
+{
+    cout << s.top() << endl; //writes 10 
+}
+
+//How many items 
+cout << s.size() << endl; 
+```
+- There is no member function to check any item of the stack in C++ library 
+
+- `s.pop()`: returns `void`, removes the top value 
+
+    - in other languages: pop may remove and return the value 
+
+        ``` 
+        S.PUSH(30); 
+        int n = s.POP(); //n is 30, 30 was removed from the stack 
+        ```
+    
+    - in C++
+
+        ```
+        s.push(30); 
+        int n = s.top(); 
+        s.pop(); 
+        ```
+
+    - what if we call this when the stack is empty? 
+
+        - C++ throws an exception, undefined behavior 
+
+            - due to performance issues 
+
+- `s.push()` method 
+
+    - Would we run out of room? 
+
+        - In C++: the size can grow, but we can run out of memory 
+
+### Scenario: Expression evaluation 
+
+- Example: Database of information of employees and if they satisfycertain criteria 
+
+    - Some expression in some designed little language: 
+
+        `(dept = 'IT' AND salary > 60000) OR name != 'SMITH'`
+
+- Prefix notation: 
+
+    - The operation comes before the operand: `f(x, y, z)` 
+
+        - The operation is `f`, the operands are `x`, `y`, `z` 
+
+    - Mathematical operations in prefix notation
+
+        - `add(sub(8, div(6,2)), 1)`
+
+        - `+ - 8 / 6 2 1`： there is a unique way to interpret thisexpression 
+
+            - Infix notation: 8-6/2+1
+
+                - infix notation requires more rules of precedence,associativity rules, etc. 
+
+- Postfix notation: 
+
+    - The operation comes after the operand
+
+        `8 6 2 / - 1 +`
+
+    - Like prefix notation, its unambiguous 
+
+- Program that can evaluate infix notation for mathematical operation
+
+    - Algorithm: 
+
+        - Go through infix string, convert sequence into postfix string 
+
+        - Given postfix string, visit each item, evaluate the answer 
+
+    - Infix to postfix: Use operator stack 
+
+        - Tricky: Associativity and precedence 
+
+        - If the current item is an operand, append it to the result sequence
+
+        - If the current item is (, push it onto the stack: 
+
+            - the open parentheses is pushed onto the stack as a marker to tell the algorithm when to stop popping when it reaches a closed )
+
+        - If the current item is ), pop operators off the stack, appending them to the result sequence, until you pop an (, which you do not append to the sequence
+
+        - If the current item is an operator: 
+
+            - If the operator stack is empty, push the current operator onto the stack 
+
+            - If the stack is not empty:
+
+                - If the top of the stack is (, push the operator onto stack 
+
+                - If the current operator has precedence greater than that of the operator at the top of the stack: push current operator onto the stack 
+
+                - Otherwise: 
+                
+                    - pop the top operator onto stack and append it to the result sequence
+
+                    - check again 
+        
+        - At the end of the input sequence, pop each operator off the stack and append it to the result sequence 
+        
+        ```
+        8 - 6 / 2 + 1
+        ^ 
+        Operator stack: =====> 
+
+        result: 8 
+
+        //Operator, empty stack 
+        8 - 6 / 2 + 1
+          ^ 
+        Operator stack: =====> 
+        -
+        result: 8 
+
+        8 - 6 / 2 + 1
+            ^ 
+        Operator stack: =====> 
+        -
+        result: 8 6 
+
+        //Operator precedence >= stack operator 
+        8 - 6 / 2 + 1
+              ^ 
+        Operator stack: =====> 
+        - / 
+        result: 8 6 
+
+        8 - 6 / 2 + 1
+                ^ 
+        Operator stack: =====> 
+        - / 
+        result: 8 6 2
+
+        //Operator precedence <= stack operator
+        8 - 6 / 2 + 1
+                  ^ 
+        Operator stack: =====> 
+        - 
+        result: 8 6 2 / 
+
+        //Check again
+        8 - 6 / 2 + 1
+                  ^ 
+        Operator stack: =====> 
+        
+        result: 8 6 2 / - 
+
+        //Push operator to stack 
+        8 - 6 / 2 + 1
+                  ^ 
+        Operator stack: =====> 
+        +
+        result: 8 6 2 / - 
+
+        8 - 6 / 2 + 1
+                    ^ 
+        Operator stack: =====> 
+        +
+        result: 8 6 2 / - 1 
+
+        //Reached the end of a string
+        8 - 6 / 2 + 1
+                     ^ 
+        Operator stack: =====> 
+        +
+        result: 8 6 2 / - 1 +
+        ```
+
+    - Evalute postfix expression: Use operand stack 
+
+        ` 8 6 2 / - 1 +`
+
+        - Push operands onto stack 
+
+        - When see operator, pop two items off the stack and apply operation
+
+        - Push result onto the stack 
+
+        ```
+        8 6 2 / - 1 +
+        ^
+        Operand stack: =====> 
+        8
+
+        8 6 2 / - 1 +
+          ^
+        Operand stack: =====> 
+        8 6 
+
+        8 6 2 / - 1 +
+            ^
+        Operand stack: =====> 
+        8 6 2
+
+        //Operator '/' pop two items off
+        8 6 2 / - 1 +
+              ^
+        Operand stack: =====> 
+        8                                     6  /  2
+
+        //Push back result onto stack 
+        8 6 2 / - 1 +
+              ^
+        Operand stack: =====> 
+        8  3
+
+        8 6 2 / - 1 +
+                ^
+        Operand stack: =====> 
+                                              8  -  3
+
+        8 6 2 / - 1 +
+                  ^
+        Operand stack: =====> 
+        5 
+
+        8 6 2 / - 1 +
+                  ^
+        Operand stack: =====> 
+        5 1
+
+        8 6 2 / - 1 +
+                    ^
+        Operand stack: =====> 
+                                             5   +  1
+        
+        8 6 2 / - 1 +
+                    ^
+        Operand stack: =====> 
+        6 
+
+        //End of string: result = 6 
+        ```
+
+        - If the postfix string was properly formed, the result will always have one number on the stack 
+
+        - Some complications: 
+
+            - Three operands: different operator symbol for it, just push three onto stack 
+
+            - One operator that means different things based on number of operands e.g. `-5` versus `8-5` 
+
+                - when converting from infix to postfix, change these into different symbols 
+    
+    - What about parentheses? 
+
+        `2 * (8 - (4 - 2) * 3) / 2`
+
+        - Turn expression into equivalent postfix 
+
+            ``` 
+            2 * (8 - (4 - 2) * 3) / 2
+            ^
+            operator stack:  ====> 
+
+            result: 2
+
+            2 * (8 - (4 - 2) * 3) / 2
+              ^
+            operator stack:  ====> 
+            *
+            result: 2
+
+            //Open (, push onto stack 
+            2 * (8 - (4 - 2) * 3) / 2
+                ^
+            operator stack:  ====> 
+            * (
+            result: 2
+
+            2 * (8 - (4 - 2) * 3) / 2
+                 ^
+            operator stack:  ====> 
+            * (
+            result: 2 8 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                   ^
+            operator stack:  ====> 
+            * ( - 
+            result: 2 8 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                     ^
+            operator stack:  ====> 
+            * ( - (
+            result: 2 8 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                      ^
+            operator stack:  ====> 
+            * ( - (
+            result: 2 8 4 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                        ^
+            operator stack:  ====> 
+            * ( - ( - 
+            result: 2 8 4 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                          ^
+            operator stack:  ====> 
+            * ( - ( - 
+            result: 2 8 4 2 
+
+            //Closing )!!!
+            2 * (8 - (4 - 2) * 3) / 2
+                           ^
+            operator stack:  ====> 
+            * ( - ( 
+            result: 2 8 4 2 - 
+
+            //Pop open (
+            2 * (8 - (4 - 2) * 3) / 2
+                           ^
+            operator stack:  ====> 
+            * ( - 
+            result: 2 8 4 2 - 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                           ^
+            operator stack:  ====> 
+            * ( - 
+            result: 2 8 4 2 - 
+
+            //* operator has greater precedence than - 
+            2 * (8 - (4 - 2) * 3) / 2
+                             ^
+            operator stack:  ====> 
+            * ( - *
+            result: 2 8 4 2 - 
+
+            2 * (8 - (4 - 2) * 3) / 2
+                               ^
+            operator stack:  ====> 
+            * ( - *
+            result: 2 8 4 2 - 3
+
+            //Closed )
+            2 * (8 - (4 - 2) * 3) / 2
+                                ^
+            operator stack:  ====> 
+            * 
+            result: 2 8 4 2 - 3 * -  
+
+            // Division operator does not have greater precedence
+            2 * (8 - (4 - 2) * 3) / 2
+                                  ^
+            operator stack:  ====> 
+             
+            result: 2 8 4 2 - 3 * - *
+
+            //Push Division operator onto stack now that its empty
+            2 * (8 - (4 - 2) * 3) / 2
+                                  ^
+            operator stack:  ====> 
+            /
+            result: 2 8 4 2 - 3 * - *
+
+            2 * (8 - (4 - 2) * 3) / 2
+                                    ^
+            operator stack:  ====> 
+            /
+            result: 2 8 4 2 - 3 * - * 2     
+
+            //End of string
+            2 * (8 - (4 - 2) * 3) / 2
+                                    ^
+            operator stack:  ====> 
+            
+            result: 2 8 4 2 - 3 * - * 2 / 
+            ```
+
+---
+
+## Queue 
+
+- Sequence of items: 
+
+    - Insertion always at one end (tail/back)
+
+    - Removal always at the other end (head/front)
+
+- Stack v. Queue:
+
+    - One active end v. Two active ends 
+
+- Motivation: 
+
+    - Line of people
+
+    - A printer queue can only handle one print job at a time 
+
+        - First come first serve 
+
+### Queue operations 
+
+1. Create an empty queue 
+
+2. Enqueue an item (add a new item) 
+
+3. Dequeue an item (remove from other end)
+
+4. Look at the front item 
+
+    - We don't tend to need to look at the back of the queue, guy just waits 
+
+    - You can't look at the front of the queue if it has no items 
+
+5. Is the queue empty 
+
+> Optional operations: 
+
+6. Look at the back item in the queue 
+
+7. Look at any item in the queue 
+
+8. How many items are in the queue 
+
+### Queue in C++ 
+
+```
+#include <queue> 
+
+using namespace std; 
+
+//Create 
+queue<int> q; 
+
+//Enqueue 
+q.push(10); 
+q.push(20); 
+
+//Visualization 
+q: x --> x x x x x --> x 
+        20    10
+
+//Look at front of queue 
+cout << q.front() << endl; //10 
+
+//Dequeue 
+q.pop(); 
+
+//Visualization
+q: x --> x x x x x --> x 
+            20    
+
+//Check if queue empty 
+if (q.empty())
+{
+    cout << "Queue is empty!" << endl; 
+}
+else 
+{
+    cout << q.front() << endl; //writes 20 
+}
+
+//Check size
+cout << q.size() << endl; //writes 1 
+
+//Can look at the back of the queue
+cout << q.size() << endl; //writes 20
+``` 
+
+- You can't look at any item in the queue 
+
+- `q.pop()` returns void (just as in stack)
+
+- If you try to ask about or remove front/back of empty queue -> undefined behavior 
+
+- Why do we want a queue instead of a linked list? 
+
+    - Restrictive type shows user clearer intent
+
+--- 
+## Implementation of Stack and Queue 
+
+### Implement a stack as an array 
+- If I have an array with elements 
+- To push an item, just insert at the end
+- To pop an item, just remove at the end 
+- Everything is efficient as long as we know where the top of the stack it 
+    - We need an integer subscript or pointer to keep track 
+
+    - `top` indicate *just past the last item* instead of last item itself 
+
+        - Scenario: 
+
+            - Underlying integer array of one item in the stack 
+
+            - `top` would take integer subscript `0` (since item at index 0) and we only have 1 item 
+
+            - When we pop the top --> `top` would be `-1`
+
+            - HOWEVER: if use pointer representation 
+
+                - `top` points to index 0
+
+                - if we pop, we subtract 1 from the pointer -> undefined behavior to have a pointer to element negative 1 
+        
+        - `top` is also going to be the size of the stack 
+
+    - To push an item: 
+
+        - `top` tells me where to store the new item 
+
+        - increment `top` 
+
+        - trying to push to a full capacity
+
+            - if `top` is index just past array -> fail 
+
+            - resizable array: `top` just past array tells you to allocate a bigger array and delete the old array 
+
+    - To pop an item: 
+
+        - subtract 1 from `top`
+
+        - we really don't do anything to the popped item, since we don't care, the limits have changed 
+
+        - popping from an empty stack
+
+            - `top` is `0` tells you the stack is empty 
+
+            - if try to look at top of the stack (`top` index - 1) that is undefined behavior
+
+            - if pop from stack, `top` will become `-1` 
+
+                - then if we try checking we will be looking into `-2` 
+
+                - then if we try pushing we will be pushing to `-1`, `top` will end up at 0 again 
+
+### Implement a stack using a linked list 
+
+- Head pointer points to the front, item points to the next
+
+- This is BAD! 
+
+    - Everytime I want to push I have to traverse the list 
+
+    - What if we have tail pointer? --> now we can push easily 
+
+    - But what if we want to pop? --> to go backwards we have to do a doubly-linked list 
+
+- Rethink this: the 'end' of the stack be the end the head pointer points to 
+
+    - Push: 
+
+        - Allocate a new node 
+
+        - Copy the head in there, make head point to first node 
+
+        - Push one more: allocate one node, set value, copy pointer to next pointer, make head point to new node
+
+        -Typically call the head point `top` 
+
+    - Pop: 
+
+        - Save a copy of the top pointer 
+
+        - Change top to point to second item 
+
+        - If try to pop from empty stack --> following nullptr --> crash 
+
+     
