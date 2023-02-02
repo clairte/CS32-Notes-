@@ -571,7 +571,7 @@ class String
 
 - Example: 
 
-    ```
+    ``` 
     void transfer(Account& from, Account& to, double amt)
     {
         if (amt > from.balance())

@@ -704,4 +704,104 @@ cout << q.size() << endl; //writes 20
 
         - If try to pop from empty stack --> following nullptr --> crash 
 
-     
+### Implement a Queue Using An Array 
+
+- Enqueue 
+    
+    - 10 at index 0, 20 at index 1, etc. 
+
+- Dequeue 
+
+    - Get rid of something 
+
+- Need to keep track of where the first and last item is: two pointers 
+
+    - Point to head: front 
+
+        - Dequeue, remove item, advance head pointer 
+
+    - Tail pointer point to end, for enqueue 
+
+- If fixed sized array
+
+    - Enqueue and dequeue process will lead to an array like this: 
+
+        ``` 
+        [] [] [] [] [] []... [23] [87] 
+                              ^    ^
+                              h    t
+        ```
+    - When we reach the end, do we want to allocate more memory? NO 
+
+        - Queue has only two items, but array capacity is a 100, 98 empty spots 
+
+            - If `t` is pointing to very last item, then copy all items to the beginning of the array 
+
+    - Solution 1: 
+
+        - Copy items back to the beginning 
+
+            ```
+            [23][87]...[][][]
+            ```
+        - Allocate more memory only when truly full 
+
+        - **Disadvantages**: costly 
+
+            - 98 elements in array, reached the end -> our algorithm tells us to move copy 98 elements to beginning to give 2 more empty spots 
+
+            - Expensive copy 
+
+            - A very short time later, we hit the end AGAIN -> have to shift again 
+
+    - Solution 2: Wrap around back to the beginning 
+
+        - Pretend that the next item after index 99 is 0 
+
+            ```
+            [87][][][][][][][21]
+            ^                ^
+            t                h
+            ```
+
+        - If at last item, then reset to beginning 
+
+        - Allocate more memory if truly full 
+
+        - Treat linear memory as if it were stored in a circle 
+
+            - Ring buffer, 'circular array' 
+
+        - We have two pointers, tail pointer points just *past* the last 
+
+        ```
+        [8][3][][][][][]
+        ^     ^ 
+        h     t
+        ```
+            
+        - When we dequeue: 
+
+            - when queue empty -> head pointer equal to the tail pointer
+
+            - but NOT the other way around 
+
+                - When the queue has 99 items in it, add one more tail pointer advances to the head pointer -> the queue is FULL 
+
+                    ```
+                    [6][7][][8][9]
+                           ^ ^
+                           t h 
+                    ```
+
+            - hence have to keep track of the size `size` variable
+
+        - Growing the array: 
+
+            - Copy, start at head, copy into index 0 of new array, go until 99, etc. 
+
+                - Copy the element the `head` pointer is pointing to into index 0, NOT actually index 0 
+
+### C++ Library Implementation of Stack and Queue  
+- As long as popping and pushing are cheap -> use that 
+
