@@ -1,3 +1,5 @@
+# Inheritance 
+
 ## Introduction 
 
 ### Scenario: Write a system that will let me draw pictures 
@@ -297,6 +299,8 @@ c.move(15, 5);
 
 - `Circle::draw()` needs to override the `Shape` implemention 
 
+Implementing Base Class Function: `Shape::draw()` 
+
 ### **Static Binding Versus Dynamic Binding**
 
 - When the compiler sees that there is a base reference or pointer that calls a member function that each derived type has defined differently, how does it know which one to call? 
@@ -356,6 +360,8 @@ class Shape
             double m_r; 
         }
         ```
+---
+## Virtual Functions 
 
 ### **Calling Base Class Function from Derived Class Function** 
 
@@ -390,8 +396,95 @@ f(ws);
     - Inconsistency! 
 
 - This is because we overrided a non-virtual function: we have to change the `move()` function to `virtual` 
+    ```
+    virtual void move(double xnew, double ynew); 
+    ```
 
 > **Never override a non-virtual function**
+
+### New Functions of Derived Classes 
+Consider this code...
+```
+class Rectangle : public Shape
+{
+    virtual void draw() const; 
+    virtual double diag() const; 
+    double m_dx; 
+    double m_dy; 
+}
+ 
+double Rectangle::diag() const 
+{
+    return sqrt(m_dx * m_dx + m_dy * m_dy); 
+}
+```
+- Why is `diag()` virtual? 
+
+    - We might want derived class of Rectangle (e.g. Square) that wants a diagonal function 
+
+        - We can figure out a diagonal of a square more efficiently (just a side * square root of 2)
+
+### Compiler Implementation of Virtual Functions 
+
+Consider this scenario...
+
+![picture 5](images/84d43815604c6fcc00b440f68c1924380c9b2021ce1553de0fdd255906b84726.png)  
+
+Since `sp` points to a `Shape` object, it doesn't know by default that this `Shape` object is in a `Rectangle`
+
+So how does the compiler figure out this is a rectangle and call the corresponding function? 
+
+- Method 1: (The C Way)
+
+    - Add an extra member to `Shape` that is an integer code etc. that encodes what kind of `Shape` it is 
+
+        - Just a Shape: type 0, Circle: 1, Rect: 2, etc...
+
+    - Compiler: 
+
+        - Follow the pointer to the `Shape` object
+
+        - Look into code number 
+
+            - Some switch statement -> based on the code number call a function 
+
+    - Disadvantage: 
+
+        - Everytime you invent a new type, we have to add a new code number for this shape 
+
+        - If some old code already compiled (.o file) -> this file will be **incorrect** 
+
+        - Recompile every piece of code that uses `Shape` -> COSTLY!!!!!
+
+- Method 2: The Virtual Table (VTBL)
+
+    - Compiler set up table for a class with virtual functions
+
+        - One entry for each virtual function (arbitrarily chosen at first)
+
+        - For the `Shape` class: two virtual functions 
+
+            - In the slots: pointer to the functions (how to execute the functions)
+
+        - For the `Rectangle` class: three virtual functions (2 inherited) 
+
+            - Entry that is associated with the function *must be identical* from the base 
+
+                - `Rectangle` associated `move()` with 0, `draw()` with 1 
+
+                - Additional functions are arbitrarily associated 
+
+                - Every derived class will have the same entry for inherited virtual functions 
+
+            - What's the right way to draw? `Rect::draw` 
+
+            - What's the right way to move? Rectangle no declare -> base class 
+
+            ![picture 6](images/c871d6fa26deb9c0323eee1cf1f204430161b297e1c0958f9225071c5b7cf28b.png)  
+
+    - Compiler now knows that the `draw()` function is associated with entry 1 
+
+        - Call the function that slot 1 points to... but WHICH??
 
 
 
