@@ -4,6 +4,268 @@ Idea: If my OS has a limitation on how many files I can have open at one time --
 
 - There needs to be a way to release the resource after open it: open the file, use it, close the file --> then we can have at most one file open at a time 
 
+## Quick Review: Pointers 
+
+We use pointers to efficiently access/modify variables defined in other parts of our program 
+
+> A pointer is a variable that holds another variable's address
+
+```
+void someFunction()             | grade 'B' 00001024 
+{                               |
+    char grade = 'B';           | ptr 1024  00001026
+    char *ptr = &grade;         |               -
+}                               |           0001030 
+```
+
+- Address of a variable: 
+
+    - The **lowest** address in memory where the variable is stored 
+
+    - `&` AddressOf operator: gives numerial address of a variable
+
+### Passing Pointer into a Function 
+```
+void set(int *px)
+{
+    *px = 5; 
+}
+
+int main()
+{
+    int x = 1; 
+    set(&x); 
+    cout << x; 
+}
+```
+- Address of `x` is passed to the function 
+- Pointer `px` now stores address of `x`
+- Deference `px` and change `x` value to 5 
+
+### Pointers vs References
+
+- When you pass a variable by reference to a function, what really happens? 
+
+```
+void set(int &val)
+{
+    val = 5; 
+}
+
+int main()
+{
+    int x = 1; 
+    set(x); 
+    cout << x; 
+}
+```
+- Reference is just a simpler notation for passing by a pointer
+- It looks like we are passing the value of `x`, but actually we are passing the address of `x` 
+
+> Always initialize pointers to nullptr immediately when you defined them
+
+```
+double *ptr_to_debt = nullptr; 
+```
+### Arrays, Addresses and Pointers 
+```
+int main()
+{
+    int nums[3] = {10, 20, 30}; 
+    cout << nums; //prints address of nums
+    int *ptr = nums; //pointer to array 
+}
+```
+In C++, a pointer to an array can be used just as if it were an array itself 
+```
+cout << ptr[2]; //prints nums[2] or 30 
+```
+The dereference operator can access array elements 
+```
+cout << *ptr; //prints nums[0] 
+cout << *(ptr + 2); //prints nums[2]
+```
+The two syntaxes have identical behavior: Get the value in `ptr`, and go to that address in memory, then skip down `j` elements and get the value 
+```
+ptr[j] 
+*(ptr + j)
+```
+When you pass an array to a function -> passing the address to the start of the array 
+
+### Classes and the "this" Pointer 
+```
+class Wallet 
+{
+    public: 
+        void Init(); 
+        void AddBill(int amt); 
+    private: 
+        int num1s, num5s; 
+}; 
+
+int main()
+{
+    Wallet a; 
+    a.Init(); 
+    a.AddBill(5); 
+}
+```
+Everytime you call a member function of an object -> C++ invisbily rewrites your function call and passes in the variable's address 
+```
+a.addBill(5); -> addBill(&a, 5); 
+a.Init(); -> Init(&a); 
+
+void Wallet::Init() -> 
+
+void Init(Wallet *this)
+{
+    this->num1s = this-> num5s = 0; 
+}
+```
+`this` is a variable that stores the address of the current object 
+
+### Pointers to Functions 
+```
+void squared(int a)
+{
+    cout << a*a; 
+}
+
+void cubed(int a)
+{
+    cout << a*a*a; 
+}
+
+int main()
+{
+    void (*f)(int); //declare a function pointer 
+
+    f = &squared; //gets the address of squared function 
+    f(10); //use like a regular function call 
+
+    f = &cubed; //the & operator is optional 
+    f(2); 
+}
+```
+---
+## Dynamic Memory Allocation 
+
+### New and Delete For Arrays 
+```
+int size, *arr; 
+arr = new int[size]; 
+arr[0] = 100; 
+delete [] arr; 
+```
+### New and Delete in a Class 
+```
+class PiNerd 
+{
+    public: 
+        PiNerd(int n)
+        {
+            //Allocate array 
+            m_pi = new int[n]; 
+            m_n = n; //store size 
+
+            for (int j = 0l; j < m_n; j++)
+            {
+                m_pi[j] = getPiDigit(j); 
+            }
+        }
+        
+        void showOff()
+        {
+            for (int j = 0; j < m_n; j++)
+            {
+                cout << m_pi[j] << endl; 
+            }
+        }
+    private: 
+        int *m_pi; //pointer variable 
+        int m_n; //size variable 
+}
+```
+We need a destructor that frees dynamically allocated array 
+```
+~PiNerd()
+{
+    delete [] m_pi; //free memory 
+}
+```
+---
+## Copy Constructor, Assignment Operator 
+
+### **Copy Construction**
+
+Copy construction is when we create (construct) a new object by copying the value of a existing object 
+- Used *anytime* you make a new copy of an existing class variable 
+    - Pass by value in function 
+```
+void cloneANerd()
+{
+    PiNerd existingNerd(4); //knows PI to 4 digits 
+    PiNerd clonedNerd = existingNerd; 
+    clonedNerd.showOff(); //prints 3.141 
+
+    PiNerd clonedNerd2(existingNerd); //works the same 
+}
+```
+> ClassName(const ClassName& old)
+- `const`: promise that you won't modify the old variable while constructing your new variable 
+- `&`: must be a reference 
+- type of parameter must be same type as class itself 
+
+**Shallow Copy**
+
+Default C++ copy constructor: copies all the member variables from the old instance to the new instance
+```
+int main()
+{
+    PiNerd ann(3); 
+    if (...)
+    {
+        PiNerd ben = ann; 
+    }
+    ann.showOff(); 
+}
+```
+- Default constructor copies all member variables from `ann` to `ben` 
+
+    - `ben.m_n = 3` 
+    - `ben.m_pi` now points to the same place as `ann.m_pi` 
+
+        - points to the *original copy* 
+- When `ben` is destructed 
+
+    - `delete [] m_pi` is called -> deletes the original copy! 
+
+    - `ann` pointer now points to empty memory -> dangling pointer
+
+Define your own copy constructor 
+
+1. Determine how much memory is allocated by the old variable 
+
+2. Allocate the same amount of memory in the new variable 
+
+3. Copy the contents of the old variable to the new variable
+```
+PiNerd(const PiNerd &src)
+{
+    m_n = src.m_n; 
+
+    //create a new array 
+    m_pi = new int[m_n]; 
+    
+    //copy each element in the array 
+    for (int j = 0; j < m_n; j++)
+    {
+        m_pi[j] = src.m_pi[j]; 
+    }
+}
+```
+---
+
 ### Example: Memory Management, create a String Type 
 
 Scenario: there is no standard String type library, we will write a C++ string type (we do have C strings)
