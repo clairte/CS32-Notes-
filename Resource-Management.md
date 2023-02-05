@@ -242,7 +242,7 @@ int main()
 
     - `ann` pointer now points to empty memory -> dangling pointer
 
-Define your own copy constructor 
+Define your own copy constructor (**Deep Copy**)
 
 1. Determine how much memory is allocated by the old variable 
 
@@ -264,6 +264,142 @@ PiNerd(const PiNerd &src)
     }
 }
 ```
+### **Assignment Operators**
+Correctly change an *existing variable*'s value to another *existing variable*
+```
+void reassignJoeToJan()
+{
+    PiNerd joe(3), jan(5); 
+    joe = jan; 
+}
+
+joe = jan; --> joe.operator=(jan); 
+```
+Default assignment operator: copies each data members
+```
+class PiNerd
+{
+    public: 
+        PiNerd(int n)
+        {
+            m_n =n; 
+            m_pi = new int[n]; 
+            ...
+        }
+}; 
+
+int main()
+{
+    PiNerd ann(3); 
+    PiNerd ben(4); 
+    ben = ann; 
+}
+```
+- Built-in assignment operator does a **shallow copy** from `ann` to `ben` 
+
+- `ben.m_n = ann.m_n` 
+
+- `ben.m_pi` pointer is assigned address stored in `ann.m_pi` 
+
+    - Neither `ann` nor `ben` now point to `ben`'s array 
+
+- Destruction process: 
+
+    - First `ben`'s destructor is called 
+
+        - Destory `ann`'s array and stuff 
+
+    - Then `ann`'s destructor is called
+
+        - Nothing to destory 
+
+    - MEMORY LEAK: `ben`'s array was never deleted 
+
+Define your own assignment operator: `operator=`
+
+1. Free any memory currently held by the target variable (`ben`)
+
+2. Determine how much memory is used by the source variable (`ann`)
+
+3. Allocate the same amount of memory in the target variable
+
+4. Copy the contents of the source variable to the target variable 
+
+5. Return a reference to the target variable 
+
+    - Function return type is a **reference to the class**
+
+    - returns `*this` when it's done 
+
+        - so that there's always a variable on the right hand side of the `=` for the next assignment
+
+        - for *multiple assignments*
+
+            ```
+            int main()
+            {
+                Gassy sam(5, false); 
+                Gassy ted(10, false); 
+                Gassy time(2, true); 
+
+                tim = ted = sam; 
+            }
+            ```
+        - all assignment is performed right-to-left
+
+            - first call `ted`'s assignment operator to assign him to `sam` 
+
+            - `this` is a pointer variable that holds the **address** of the current object (`ted`'s address in RAM)
+
+            - `*this` refers to the whole `ted` variable
+
+        - this line returns the variable itself 
+
+            - `ted = sam` is just replaced by the `ted` variable
+
+            ```
+            tim = ted; 
+            ```
+        - then returns the `tim` variable 
+
+- `ClassName &operator=(const ClassName &rhs)`
+
+- `const` keyword: guarantees that the `rhs` object is not modified during the copy 
+
+- MUST pass a reference to the `rhs` object 
+
+Preliminary Implementation
+
+```
+PiNerd &operator=(const PiNerd &rhs)
+{
+    delete [] m_pi; //free lhs object's memory
+    m_n = rhs.m_n; 
+
+    //add a statement to allocate enough storage 
+    m_pi = new int[m_n]; //hey OS, could you reserve 12 bytes for me? 
+
+    for (int j = 0; j < m_n; j++)
+    {
+        m_pi[j] = rhs.m_pi[j]; 
+    }
+
+    return *this; 
+}
+```
+- Works properly, EXCEPT when aliasing 
+
+> Aliasing: when we use two different references/pointers to refer to the same variable
+
+- `ann = ann;` 
+
+    - First `delete [] m_pi`: free dynamically allocated array 
+    - Now we have nothing to assign to -> we deleted our array! 
+
+        - We copy the random values over themselves! 
+
+> The assignment operator function must check to see if a variable is being assigned to itself, and if so, do nothing...
+
 ---
 
 ### Example: Memory Management, create a String Type 
