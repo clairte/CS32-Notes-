@@ -69,6 +69,8 @@
 
             - Insertion/removal near the beginning much more costly than end 
 
+---
+
 ## Linked List 
 
 > Goal: represent a collection of values for which inserting and removing items preserves the order of the other items, but is efficient even if the insertions are not at the end
@@ -79,7 +81,7 @@
 
     - We can store each item in random addresses, we only follow the arrows
     - We have each item store its own value + a pointer to the next item 
-    - To insert: change the pointer of the previous item to point to new item, have new item's pointer point to next itme 
+    - To insert: change the pointer of the previous item to point to new item, have new item's pointer point to next item
     - To remove: delete item's pointer, have previous item's pointer point to next item 
     - To print: visit each item through the previous item, stop until we reach the `nullptr` 
         
@@ -309,6 +311,400 @@
     head = p->next; 
     delete p; 
     ```
+
+### Linked List Class Implementation 
+```
+struct Node
+{
+    string value; 
+    Node *next; 
+}
+```
+The only member variable we need is a head pointer 
+```
+class LinkedList
+{
+    public: 
+        LinkedList(); 
+        void addToFront(string v); 
+        void addToRear(string v); 
+        void deleteItem(string v); 
+        bool findItem(string v); 
+        void printItems(); 
+        ~LinkedList(); 
+    private: 
+        Node *head; 
+};
+```
+Constructor: create an empty list (head pointer to nullptr)
+```
+LinkedList()
+{
+    head = nullptr; 
+}
+```
+Print Items in a List: loop through each of the nodes and print out values, starting with node pointed to by `head` 
+
+**Linked List Traversal**
+```
+void printItems()
+{
+    //Use a node pointer 
+    Node *p; 
+    p = head; //p points to 1st node 
+
+    while (p != nullptr)
+    {
+        cout << p->value << endl; 
+        p = p->next; 
+    }
+}
+```
+**Add an Item to a List**
+
+Add at top 
+```
+void addToFront(string v)
+{
+    //allocate new node 
+    Node *p; 
+    p = new Node; 
+
+    p->value = v; //set value
+
+    //Link new node to current top node 
+    p->next = head; 
+
+    //Update head pointer to new top node 
+    head = p; 
+}
+```
+Add at rear 
+
+- Two cases: 
+
+    - Empty list: same as adding new node to front
+
+    - Non-empty list: traverse down links until we find the current last node 
+
+        - Use a `temp` variable to traverse to current last node 
+
+        - Allocate a new node, set value in node 
+
+        - Link the current last node to new node
+
+        - Link last node to nullptr 
+```
+void addToRear(string v)
+{
+    if (head == nullptr)
+    {
+        addToFront(v); 
+    }
+    else
+    {
+        Node *p; 
+        p = head; //start at top node 
+        while (p->next != nullptr)
+        {
+            p = p->next; 
+        }
+        Node *n = new Node; 
+        n->value = v; 
+        p->next = n; 
+        n->next = nullptr; 
+    }
+}
+```
+Add Anywhere 
+
+- Several Cases: 
+
+    - If empty list: `addToFront()`
+    
+    - If new node belongs at top of list (sorted etc.): `addToFront()`
+
+    - If new node belongs in middle of list 
+
+        - Use a traversal loop to find the node just ABOVE where you want to insert your new item 
+
+        - Allocate and fill new node 
+
+        - Link new node into list right after the ABOVE node 
+
+```
+void AddItem(string newItem)
+{
+    if (head == nullptr)
+    {
+        AddToFront(newItem); 
+    }
+    else if (/*decide if new item belongs at the top*/)
+    {
+        AddToFront(newItem); 
+    }
+    else //new node belongs somewhere in the middle 
+    {
+        Node *p = head; 
+        while (p->next != nullptr)
+        {
+            if (/*p points just above where to insert*/)
+            {
+                break; 
+            }
+            p = p->next; 
+        }
+        Node *latest = new Node; 
+        latest->value = newItem; 
+        latest->next = p->next; 
+        p->next = latest; 
+    }
+}
+```
+**Delete Item from the List**
+
+- Two cases: 
+
+    - Check if list is empty first -> if then return
+
+    - Deleting the first node
+
+        - If value is value of first node 
+
+        - Set node to delete = address of top node 
+
+        - Update head to point to the second node in list
+
+        - Delete target node 
+
+        - Return
+
+    - Deleting interior or last node 
+
+        - Traverse down the list until find node ABOVE the one to delete (so we can relink)
+
+            - If p->next is not a nulltpr and is p->next->value is the value we want 
+
+        - If found target node 
+
+            - killMe = addr of target node 
+
+            - Link node above the node below 
+
+            - Delete target node 
+
+```
+void deleteItem(string v)
+{
+    if (head == nullptr) { return; }
+
+    if (head->value == v)
+    {
+        Node *killMe = head; 
+        head = killMe->next; 
+        delete killMe; 
+        return 
+    }
+
+    Node*p = head; 
+    while (p != nullptr)
+    {
+        if (p->next != nullptr && p->next->value == v)
+        {
+            break; //p points to node above 
+        }
+        p = p->next; 
+    }
+    if (p != nullptr) //found our value 
+    {
+        Node *killMe = p->next; 
+        p->next = killMe->next; 
+        delete killMe; 
+    }
+}
+```
+**Linked List Destruction** 
+
+- Traverse the list with temp variable `p` 
+
+- Before we delete the node pointed to buy p
+
+    - Save the location of the next node in a temp variable 
+
+```
+~LinkedList()
+{
+    Node *p; 
+    p = head; 
+    while (p != nullptr)
+    {
+        Node *n = p->next; 
+        delete p; 
+        p = n; 
+    }
+}
+```
+
+### Disadvantages of Linked Lists (Singly) 
+
+- Complex to implement compared to arrays 
+
+- Element accessing 
+
+    - To access the kth item, have to travese down k - 1 times from the head 
+
+- To add an item at the end -> traverse through all N existing nodes 
+
+### Tail Pointers and Linked Lists 
+
+> A tail pointer is a pointer that always points to the last node of the list 
+
+- We can now add new items to the end of our list without traversing
+
+```
+class LinkedList
+{
+    public: 
+        LinkedList(); 
+        void addToFront(string v); 
+        ...
+    private: 
+        Node *head; 
+        Node *tail; 
+}; 
+```
+
+**New `addToRear()` function** 
+
+- No longer need traversal loop, tail pointer already points to last node 
+
+```
+void addToRear(string v)
+{
+    if (head == nullptr)
+    {
+        addToFront(v); 
+    }
+    else 
+    {
+        Node *n = new Node; 
+        n->value = v; 
+        tail->next = n; //linked prev last node to curr
+        n->next = nullptr; 
+        tail = n; 
+    }
+}
+```
+
+### Doubly-linked lists 
+
+A doubly-linked list has both `next` and `previous` pointers in every node 
+```
+struct Node 
+{
+    string value; 
+    Node* next; 
+    Node* prev; 
+}; 
+```
+- Everytime we insert a new node or delete an existing node -> update 3 sets of pointers 
+
+    - The new nodes's next and prev pointers 
+
+    - The previous node's next pointer
+
+    - The following node's previous pointer 
+
+### Linked List Cheat Sheet 
+
+Given a pointer to a node: `Node *ptr`
+
+NEVER access a node's data until validating its pointer
+```
+if (ptr != nullptr)
+{
+    cout << ptr->value; 
+}
+```
+To advance `ptr` to the next node/end of the list
+```
+if (ptr != nullptr)
+{
+    ptr = ptr->next; 
+}
+```
+To see if `ptr` points to the last node in a list 
+```
+if (ptr != nullptr && ptr->next == nullptr)
+{
+    //then ptr points to the last node
+}
+```
+To get to the next node's data 
+```
+if (ptr != nullptr && ptr->next != nullptr)
+{
+    cout << ptr->next->value; 
+}
+```
+To get the head node's data: 
+```
+if (head != nullptr)
+{
+    cout << head->value; 
+}
+```
+To check is a list is empty
+```
+if (head == nullptr)
+{
+    cout << "List is empty"; 
+}
+```
+To check if a pointer points to the first node in a list 
+```
+if (ptr == head)
+{
+    cout << "ptr is the first node"; 
+}
+```
+
+### Linked Lists with a Dummy Node 
+
+> Replacing head pointer with a dummy node gets rid of special cases 
+
+- Steps: 
+
+    - Get rid of head pointer 
+
+    - Add a node member variable to class `dummy` 
+
+        - Hold no value 
+
+    - Update your member functions to use the dummy node 
+
+- Constructor
+
+    - Set `dummy.next` to `nullptr` 
+
+    - Initialize node's value 
+
+- Delete Item Function 
+
+    - Find the node above the one you want to delete 
+
+    - Relink above ndoe to node below 
+
+    - Delete the target node 
+- Add to End Function 
+
+    - Loop to find the last node 
+
+    - Allocate a new node 
+
+    - Initialize the new node 
+
+    - Update last node's next pointer to point to new node 
 
 - Notes: 
 

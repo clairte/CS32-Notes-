@@ -168,6 +168,17 @@ When Constructors Are Called...
 
 - **NOT CALLED** when you define a pointer variable to this type
 
+**Default Parameters** 
+```
+String::String(const char* value = "")
+{
+    ...
+}
+```
+- If a constructor *can be called with no arguments*, then it is a default constructor 
+
+- Only specific in declaration, not implementation
+
 ### **Destructor**
 
 An object will often reserve memory slots from the operating system while it runs 
