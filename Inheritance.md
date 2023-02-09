@@ -1,6 +1,315 @@
 # Inheritance 
 
 ## Introduction 
+Inheritance is a way to form new classes using classes that have already been defined 
+
+New class specieis which class it's based on and "inherits" all of the base class's functions/data for free, can add its own new functions/data 
+
+### Idea 
+- First define the **superclass** and implement all its member functions 
+
+- Then define the **subclass** explictly basing it on the **superclass**
+
+- Finally add new variables and member functions
+---
+
+## Three Uses of Inheritance
+
+### Resuse: write code once in base class, reuse the same code in derived classes 
+
+- Every **public** method in the base class is automatically reused in the dirved class 
+
+- **Private members** in the base class are hidden 
+
+- **Protected members**: derived class able to reuse 'private' member function but not rest of the program 
+
+    - Derived class can use as a public member, but...
+
+        ```
+        //FAILS
+        stan.chargeBattery(); //in main()
+        ```
+    - NEVER make member variables protected: a class's member variables are for it to access alone 
+    
+### Extension: add new behaviors or data to derived class 
+
+- Extensions in derived class is unknown to base class 
+
+### Specialization: redefine an existing behavior from the base class with a new behavior in derived class 
+
+- `virtual`
+
+- Derived class will be default always use the mostderived version of a specialized method
+
+    ```
+    class NerdyStudent : public Student 
+    {
+        public: 
+            virtual void cheer()
+            {
+                cout << "go algorithms!";
+            }
+            void getExcitedAboutCS()
+            {
+                cheer(); //calls Nerdy's cheer()
+            }
+    }; 
+
+    int main()
+    {
+        NerdyStudent lily; 
+        lily.getExcitedAboutCS(); 
+    }
+    ```
+ 
+    - If want to use base class's version: 
+
+        ```
+        void getExcitedAboutCS()
+        {
+            Student::cheer(); 
+        }
+        ```
+ 
+- Derived class method reuse base-class method that itoverrides 
+
+    ```
+    class NerdyStudent : public Student 
+    {
+        public: 
+            virtual string whatILike()
+            {
+                string fav = Student::whatILike(); 
+                fav += " bunsen burners"; 
+                return fav; 
+            }
+    }; 
+    ```
+---
+
+## Inheritance & Construction 
+
+When you define a derived object, it has both superclass and subclass parts 
+
+> C++ always constructs the base part first, then the derived part second 
+
+Example 
+```
+//base class 
+class Robot
+{
+    public: 
+        Robot()
+            Call m_bat's constructor
+        {
+            m_x = m_y = 0; 
+        }
+    private:
+        ...
+};
+
+//derived class 
+class ShieldedRobot : public Robot
+{
+    public: 
+        ShieldedRobot()
+            Call Robot's constructor 
+            Call m_sg's constructor
+        {
+            m_shieldStrength = 1; 
+        }
+    private: 
+        int m_shieldStrength; 
+        ShieldGenerator m_sg; 
+}; 
+
+int main()
+{
+    Shielded Robot phyllis; 
+}
+```
+
+- Steps: 
+
+    1. First call base class constructor 
+    2. Then call derived object's member variables
+    3. Then run body of derived constructor
+
+    ```
+    Robot's data: 
+    m_x = 0 m_y = 0 
+    m_bat FULL 
+
+    ShieldedRobot's data: 
+    m_sg ON 
+    m_shieldStrength = 1
+    ```
+---
+## Inheritance & Destruction 
+
+> C++ destructs the derived part first, then the base part second 
+
+Example
+```
+class Robot
+{
+    public: 
+        ~Robot()
+        {
+            m_bat.discharge(); 
+        }
+        Call m_bat's destructor
+    ...
+};
+
+class ShieldedRobot : public Robot
+{
+    public: 
+        ~ShieldedRobot()
+        {
+            m_sg.turnGeneratorOff(); 
+        }
+        Call m_sg's destructor 
+        Call Robot's destructor 
+    ...
+}; 
+```
+- Steps 
+
+    1. Run derived object destructor body 
+    2. Destroy data members 
+    3. Call base class's destructor 
+
+--- 
+
+## Inheritance & Initializer Lists 
+
+> When base class does not have a default constructor 
+
+Example
+```
+class Animal 
+{
+    public: 
+        Animal(int Ibs)
+        { m_Ibs = Ibs; }
+
+        void what_do_i_weigh()
+        { cout << m_Ibs << "Ibs!\n"; }
+    private: 
+        int m_Ibs; 
+};
+
+class Duck : public Animal 
+{
+    public: 
+        Duck() 
+            : Animal(2), m_belly(1)
+        { m_feathers = 99; }
+
+        void who_am_i()
+        { cout << "A duck!"; }
+    private: 
+        int m_feathers; 
+        Stomach m_belly; 
+};
+```
+- Derived class calls base class's default constructor if there is *no initializer lists* 
+
+- The first item in the initializer list MUST BE the name of the base class
+
+```
+Duck(int Ibs) : Animal(Ibs)
+{
+    m_feathers = 99; 
+}
+```
+
+### Multiple Layers of Inheritance 
+
+Example: Animal -> Duck -> Mallard 
+```
+class Duck : public Animal 
+{
+    public: 
+        Duck(int Ibs, int numF) : 
+            Animal(Ibs - 1)
+        { m_feathers = numF; }
+
+        void who_am_i()
+        {
+            cout << "A duck!"; 
+        }
+    private: 
+        int m_feathers; 
+}; 
+
+class Mallard : public Duck 
+{
+    public: 
+        Mallard(string &name) : 
+            Duck(5, 50)
+        { myName = name; }
+    private: 
+        string myName; 
+}; 
+```
+
+--- 
+
+## Inheritance & Assignment Operators 
+
+Assigning one instance of a derived class to another 
+```
+ShieldedRobot larry, curly; 
+larry.setShield(5); 
+larry.setX(12); 
+larry.setY(15); 
+
+curly.setShield(75); 
+curly.setX(7); 
+curly.setY(9); 
+
+larry = curly;
+```
+- C++ first copies the base data from curry to larry, then copies derived data from curly to larry 
+
+> Works fine only in cases where all members are not dynamically allocated & have defined assignment operators 
+
+Defining assignment operator 
+```
+class Person 
+{
+    public: 
+        Person() { myBook = new Book; }
+        Person(const Person &other); 
+        Person& operator=(const Person &other); 
+        ...
+    private: 
+        Book *myBook; 
+}; 
+
+class Student : public Person 
+{
+    public: 
+        Student(const Student& other) 
+            : Person(other)
+        {
+            ...//make a copy of other's linked list of classes
+        }
+
+        Student& operator=(const Student& other)
+        {
+            if (this != &other)
+            {
+                Person::operator=(other); 
+                //do copy swap 
+                return *this; 
+            }
+        }
+    private: 
+        LinkedList *myClasses; 
+}
 
 ### Scenario: Write a system that will let me draw pictures 
 
