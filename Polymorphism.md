@@ -317,7 +317,7 @@ int main()
 
 > Always use virtual destructors 
 ---
-## Pure Virtual Functions and Abstract Base Methods 
+## Pure Virtual Functions and Abstract Base Class 
 
 > A pure virtual function is one that has no actual code
 
