@@ -310,6 +310,7 @@ class Student : public Person
     private: 
         LinkedList *myClasses; 
 }
+```
 
 ### Scenario: Write a system that will let me draw pictures 
 
@@ -794,6 +795,8 @@ So how does the compiler figure out this is a rectangle and call the correspondi
     - Compiler now knows that the `draw()` function is associated with entry 1 
 
         - Call the function that slot 1 points to... but WHICH??
+    
+    - Virtual pointers that are stored in the `Shape` class under the hood 
 
 
 

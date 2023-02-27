@@ -119,3 +119,4 @@ arr[i][j] = 0
 $f(n) = n^2$ 
 
 Hence the algorithm is $O(n^2)$
+
