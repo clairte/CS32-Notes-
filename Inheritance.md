@@ -798,9 +798,212 @@ So how does the compiler figure out this is a rectangle and call the correspondi
     
     - Virtual pointers that are stored in the `Shape` class under the hood 
 
+        - Virtual pointer points to the corresponding virtual table 
 
+        ![picture 7](images/e4605bc0864d531ab49909d0fa75be364867f9b2fbbe85f72291ebb8096b9901.png)  
 
+    - They still work with new additional stuff 
 
+`Shape`'s `draw()` function: Is the implementation necessary? 
 
+- We HAVE to define it because compiler needs to know that this function exists when there is a pointer to `Shape` 
 
+    - `Shape` has a designated slot in virtual table for this function and that entry will be the same for all derived classes 
 
+- Declare this function, but NOT implement it 
+
+    - Do we have a `nullptr` for `draw()` in `Shape`'s virtual table? 
+
+**Pure Virtual** 
+```
+class Shape 
+{
+    virtual void draw() const = 0; 
+}; 
+```
+- `draw()` part of `Shape` interface, but no implementation 
+
+- Borrows C syntax 
+
+- Under the hood implementation 
+
+    - Compile-time error when `draw()` is called on `Shape` (which is pure virtual, not defined) 
+
+        - When call -> if arrive at `Shape`'s virtual table -> TROUBLE 
+
+        - Objects that are just plain Shapes and nothing more will result in this 
+
+            - YOU CANNOT CREATE AN OBJECT OF `SHAPE` TYPE -> WILL NOT COMPILE 
+    
+    ```
+    sp = new Shape; //CANNOT EXIST
+    ```
+
+    - Cannot: 
+
+        1. Declare a variable of `Shape` 
+
+        2. Dynamically allocate a `Shape`
+
+    - Can: 
+
+        1. Pointers to `Shape` 
+
+**Abstract Base Class** 
+
+We cannot create an object that is an ABC
+
+> I want a mammal, not a cat, a dog, something that is JUST a mammal does not exist
+
+- Abstraction -> generalization of somethings 
+
+- You never want to create an object of an abstract type because it just does not make sense 
+
+> An abstract class cannot be instantiated 
+
+### Not defining a virtual function that was pure in a derived class
+
+Suppose I forgot to define `draw()` for a `Rectangle`
+
+- `Shape` never defined it, it is pure virtual 
+
+- `Rectangle` will also inherite the **pure virtual function** -> **Rectangle is an abstract class too** 
+
+    - THAT'S A PROBLEM!!!! 
+
+### Polymorphism 
+
+"many forms, many shapes" 
+
+- A particular object can have more than one type 
+
+    - A `Dog` is also a `Mammal` and an `Animal` and maybe a `LivingThing` 
+
+    - Inheritance hierarchy 
+
+- The same function name can have different implementations 
+
+    - All called the same way, but call different versions of them 
+
+    - The function is *polymorphic* 
+
+### Virtual Destructors 
+
+**Example** 
+
+I have a `Polygon` that is a type of `Shape`, which contains a linked list that needs dynamically allocation 
+```
+class Polygon : public Shape
+{
+    ~Polygon(); 
+    Node* head; 
+}
+```
+
+Hence we need a destructor for `Polygon` 
+
+The destructor for `Shape` is just default, because we don't need to define one 
+
+Problem walkthrough 
+
+``` 
+Shape* sp; 
+sp = new Polygon; 
+sp = new Somethingelse; 
+
+delete sp; 
+```
+- Compiler needs to find the correct destructor for the dynamically allocated objects 
+
+- To destroy `Polygon`, needs to call `Polygon` destructor for the linked list to be well deleted 
+
+- But the compiler at compile-time DOES NOT KNOW which object `sp` points to 
+
+    - So the choice of which destructor is called made at compile-time is statically bound -> will just call `Shape`'s destructor 
+
+    - Then our linked list nodes never destroyed -> MEMORY LEAK 
+
+- We need compile to decide at runtime which destructor is called -> **virtual destructor** 
+
+- We want compiler-generated destructor for `Shape` to be virtual -> then we need to declare it in `Shape`!!! 
+
+    - Because the default is that the `Shape` destructor is not virtual 
+
+        - C++ for efficiency -> cost of virtual functions involved when even no inheritance 
+
+```
+class Shape
+{
+    virtual ~Shape(); 
+}; 
+```
+- Slot in the virtual table for destructor -> designated 
+
+    - Then the destructor of any derived class will have the same slot number 
+
+> If a class is designed to be a base class, declare a destructor for it, and make it virtual 
+
+What about ABC? 
+
+- If I never create object of just `Shape`, do I have to implement destructor for `Shape`? 
+
+    - **NO YOU CAN'T**
+
+> Have to implement a destructor even for an ABC 
+
+- Steps of Destruction 
+
+    1. Execute the body of the destructor 
+
+    2. Destroy the data members 
+
+        - If built-in, nothing 
+
+        - If class type, call that class's destructor 
+
+    3. Destroy the base part of the derived object 
+
+        - If a function is called, we have to implement it 
+
+### Constructors and Initializer List 
+
+- Steps of Construction
+
+    1. Construct the base part 
+
+    2. Construct the data members 
+
+    3. Execute the body of the constructor 
+
+> We need to initialize `Shape` using initializer list in constructor of derived classes because the construction calls the base constructor first 
+
+```
+Circle::Circle(double r, double x, double y)
+    : m_r(r), Shape(x, y)
+{
+    ...
+}
+```
+- The `Circle` constructor passes a pointer to `Shape`'s constructor 
+
+    - The Shape constructor already knows that my constructor will expect which object will call me (the derived class) 
+
+        - Since the Shape is an ABC 
+
+- What if we don't mention? 
+
+    - Call `Shape`'s default constructor 
+
+        - If no default constructor -> COMPILATION ERROR 
+
+            - Compiler: I can't find `Shape::Shape()` 
+
+    - What if we want something like "default" 
+
+        ```
+        Circle::Circle(double r)
+            : Shape(0, 0), m_r(r)
+        {
+            ...
+        }
+        ```
