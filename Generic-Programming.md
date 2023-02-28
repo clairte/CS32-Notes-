@@ -109,6 +109,17 @@ bool operator<(const Dog& other) const
 
 Suppose you need to write a swap function for both `Dog` and `Circle`, we have to write two different functions currently...
 
+> This is a pattern for manufacturing functions...
+
+### Convention
+
+```
+template<typename T>
+
+T functionName(T a, T b)
+...
+```
+
 ### **Define generic function** 
 
 1. Add the following line above function 
@@ -193,6 +204,10 @@ int main()
 
     - Compiler generates 3 versions of `swap` here 
 
+    - That is what is actually executed, compiler sees template and generates a function for you 
+
+    - **Template argument deduction**: compiler deducts the types of the argument and helps you generate  
+
 3. MUST use template data type to define the type of at least **one formal parameter**, or ERROR! 
 
     Good: 
@@ -248,6 +263,64 @@ int main()
 
     - MUST define a comparison operator 
 
+6. The call matches some template 
+
+```
+...minimum(3, 3,5); 
+```
+- This function passes an **int** and a **double** 
+
+- There are NO templates for int and double function 
+
+    - Even though we can compare an int to a double, or conversion of int to a double 
+
+- The type has a match **exactly** 
+
+- Compilation error 
+
+7. The instantiated template must compile 
+
+```
+Chicken c3 = minimum(c1, c2); 
+```
+- Types match, so function is generated 
+
+- But this is a custom type, we have to define a `<` operator for our custom type -> so the template will NOT compile 
+
+8. The instantiated template must do what you want 
+
+```
+cin.getline(ca1, 100); 
+cin.getline(ca2, 100); 
+char* ca3 = minimum(ca1, ca2); 
+```
+- These are C-strings 
+
+- It is not comparing the two strings, because these are *array* of characters, will compare two pointers...
+
+- Will compile, just not compare what you want
+
+We have to...
+```
+char* minimum(char* a, char* b)
+{
+    if (strcmp(a, b) < 0)
+        return a; 
+    else 
+        return b; 
+}
+```
+
+9. For matching, the only conversions considered for any type `A` are: 
+
+    - `A` => `A&` 
+
+    - `A` => `const A` 
+
+    - array of `A` => `A*` 
+
+    - e.g. int matches `const T&`, `T` will be int 
+
 ### Multi-type Templates 
 ```
 template <typename Type1, typename Type2> 
@@ -269,6 +342,75 @@ int main()
     foo(42, 52); 
 }
 ```
+Caution, Example: 
+```
+template<typename T1, typename T2>
+??? minimum(T1 a, T2 b)
+{
+    if (a < b)
+        return a; 
+    else 
+        return b; 
+}
+```
+```
+int main()
+{
+    int k; 
+    cin >> k; 
+    minimum(k, 3.5); 
+}
+```
+- What should the return type be? 
+
+    - In this case, it is not clear what the return type should be
+
+    - If we put as int: 
+
+        `minimum(3.5, k)` and `k = 10` 
+
+        Then `a < b` and we return `a`, but `a` is converted to an int, return wrong value 
+
+    etc. 
+
+### Passing By **Const Reference** in Template Functions 
+```
+int main()
+{
+    ExpensiveToCopyThing x, y; 
+    minimum(x, y); 
+}
+```
+- Do I really want to pass by value if I just want to look at them?
+```
+T minimum(const T& a, const T& b)
+```
+- Cheap
+- Still work correctly 
+
+### Writing Template Functions for Different Types (Initialization)
+```
+double sum(const double a[], int n)
+{
+    double total = 0; 
+    ...
+}
+
+string sum(const string a[], int n)
+{
+    string total = 0; //string cannot be initialized this way 
+    string total; //if we do this, initialization for double will NOT work 
+    string total = string(); //double built-in types have no default constructors
+}
+```
+**Temporary Object**
+```
+double total = double(); 
+string total = string(); 
+```
+- NOW THIS IS LEGAL 
+
+- Extended the language to allow for built-in types 
 ---
 ## Writing Generic Classes 
 
@@ -376,6 +518,13 @@ vector<int> vals(3);
 vals.push_back(123); //adds the fourth element 
 ```
 
+Insert 
+```
+q = v.insert(p, 40); 
+//returns an iterator pointing to new item 
+```
+- New memory allocation 
+
 Change item 
 ```
 vals[0] = 42; 
@@ -427,6 +576,16 @@ Methods:
 
 `push_front` & `pop_front`
 
+`insert` 
+
+- `q = li.insert(p, 40);`
+
+    - where in the list, and what item 
+
+    - `p` is the iterator 
+
+    - returns another list iterator that points to 40 
+
 - Can't access list elements using brackets 
 
 - STL list is based on a linked list -> fast insertion/deletion but slow access to middle elements 
@@ -442,6 +601,17 @@ To enumerate the contents of a container -> typically use an iterator variable
 2. Just like a pointer, increment and decrement an iterator to move it up/down through a container's items 
 
 3. Use iterator to read/write each value it points to 
+
+- We do not have general pointer arithmetic as with normal pointers 
+
+    - Only increment decrement 
+
+    - A vector iterator, we can do pointer arithmetic 
+
+        ```
+        p = v.end() - 2; 
+        ```
+    
 
 **Define an Iterator**: 
 
@@ -648,7 +818,7 @@ int main()
     cout << itr.getVal(); 
 }
 ```
-### Iterator Notes 
+### **Iterator Notes**
 
 For a vector...
 
@@ -687,7 +857,10 @@ However for all STL containers: deletion notes
 it = s.find("carey"); 
 s.erase("carey"); 
 ```
-
+- We have to assign `it` a new value 
+```
+it = s.erase("carey"); 
+```
 ---
 ## Other STL Containers 
 

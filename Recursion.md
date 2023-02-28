@@ -43,6 +43,23 @@ void MergeSort(an array)
     //now the complete array is sorted 
 }
 ```
+
+```
+void sort(int a[], int start, int end)
+{
+    if (end - start >= 2) //if array has at least 2 elements 
+    {
+        int mid = (start + end) / 2; //midpoint 
+        sort(a, start, mid); 
+        sort(a, mid, end); 
+        merge(a, start, mid, end); //assuming we have the merge function 
+    }
+
+    //if array only has 1 element -> already sorted
+}
+```
+- `end` is the position just past the array 
+
 ---
 
 ### **Two Rules of Recursion** 
@@ -677,6 +694,41 @@ void solve(int row, int col)
 }
 ```
 
+**Approach to Solve the Maze**
+
+```
+bool solve(start, end)
+{
+    if (start == end)
+        return true; 
+    mark start as visited 
+    for each direction
+    { 
+        if (moving in that direction is possible AND that spot has not been visited)
+            if (solve(position reached by moving that step, end))
+                return true
+    }
+    return false 
+}
+```
+- Is every call solving a smaller problem? 
+
+    - Measure of size of problem: getting closer to the goal 
+
+- How to measure size of a problem? 
+
+    - Number of unvisited places will decrease each time a recursive call is made AND there is a finite number of spots 
+
+    - If everyspot has been visited and we are still not at goal -> maze not solvable 
+
+    - Size of problem is the number of unvisited places 
+
+- Base Cases 
+
+    - Either I reach the goal 
+
+    - Or I visited the place or everywhere surrounding is a wall
+
 ### Writing a Tic Tac Toe Game 
 
 Use recursion to write function `getBestMoveForX()` 
@@ -697,3 +749,61 @@ Co-recursion
 
     - Until we hit the bottom 
 
+-- 
+## Other Topics 
+
+### Infinite Recursion 
+
+An infinite loop: going to consume time 
+
+- If there is nothing in the loop that consumes resources (dynamically allocate something) -> then actually infinite -> just consume time 
+
+Infinite Recursion: involves function call, which needs memory to set up new environment 
+
+- Every recursion consumes a little more memory 
+
+- Infinite recursion will after some time get the program to crash 
+
+### Divide and Conquer (Approach to Recursion) 
+
+Break big problem into small problems 
+
+E.g. Merge sort 
+
+- The same algorithm will work if pile not split into evenly piles 
+
+    - Just not as efficient 
+
+### The first and the rest OR The last and the rest 
+
+Some other problems want to divide unevenly
+
+### Ways to Go Wrong 
+
+Example: Missing Base Case 
+
+```
+bool has(int a[], int n, int target)
+{
+    if (a[0] == target)
+        return true; 
+    return has(a+1, n-1, target); 
+}
+```
+- How could this function ever return false? 
+
+- Can I fully prove termination? 
+
+    - If array does not have target, then no base case 
+
+    - We are eventually going to reach the end and try to access past the array 
+
+```
+if (n == 0)
+    return false; 
+```
+- What if someone passes negative `n` 
+```
+if (n <= 0)
+    return false; 
+```
