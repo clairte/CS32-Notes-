@@ -266,3 +266,272 @@ Algorithm
 
     - If V is greater than current node's value, go right 
 
+Two different search algorithms: iterative and recursive 
+
+```
+bool Search(int v, Node *root)
+{
+    Node *ptr = root; 
+    while (ptr != nullptr)
+    {
+        if (v == ptr->value)
+            return true; 
+        else if (v < ptr->value)
+            ptr = ptr->left; 
+        else
+            ptr = ptr->right;
+    }
+    return false; //nope 
+}
+```
+```
+bool Search(int v, Node *root)
+{
+    if (root == nullptr)
+        return false; 
+    else if (v == root->value)
+        return true; 
+    else if (v < root->value)
+        return Search(V, root->left); 
+    else 
+        return Search*V, root->right); 
+}
+```
+
+**Big-O of BST Search**
+
+In the average BST with N values, how many steps are required to find our value? 
+
+- log2N steps 
+
+In the worst case BST with N values, how mnay steps are required to find our value? 
+
+- N steps 
+
+### Inserting a New Value Into A BST 
+
+To insert a new node in our BST, we must place the new node so that the resulting tree is still a valid BST 
+
+Input: A value V to insert 
+
+Algorithm: 
+
+- If the tree is empty 
+
+    - Allocate a new node and put V into it 
+
+    - Point the root pointer to our new node
+
+- Start at the roto of the tree 
+
+- While we are not done 
+
+    - If V is equal to current node's value, DONE
+
+    - If V is less than current nodes value 
+
+        - If there is a left child, then go left 
+
+        - Else allocate a new node and put V into it, and set the current node's left pointer to a new node, DONE 
+
+    - If V is greater than current node's value 
+
+        - If there is a right child, then go right 
+
+        - Else allocate a new ndoe and put V into it, set current node's right pointer to a new node, DONE 
+
+Code 
+```
+struct Node 
+{
+    Node(const std::string &myVal)
+    {
+        value = myVal; 
+        left = right = nullptr; 
+    }
+    std::string value; 
+    Node *left, *right; 
+}
+```
+```
+class BST
+{
+    public: 
+        BST()
+        {
+            m_root = nullptr; 
+        }
+
+        void insert(const std::string &value)
+        {
+            ...
+        }
+    private:
+        Node *m_root; 
+}; 
+```
+- our BST class has a single member variable, the root pointer to the tree 
+
+- our constructos initializes that root pointer to nullptr when we create a new tree (indicate tree is empty) 
+
+```
+void insert(const std::string &value)
+{
+    if (m_root == nullptr)
+        { m_root = new Node(value); return; }
+    Node *cur = m_root; 
+    for (;;)
+    {
+        if (value == cur->value) return; 
+        if (value < cur->value)
+        {
+            if (cur->left != nullptr)
+                cur = cur->left; 
+            else 
+            {
+                cur->left = new Node(value); 
+                return; 
+            }
+        }
+        else if (value > cur->value)
+        {
+            if (cur->right != nullptr)
+                cur = cur->right; 
+            else 
+            {
+                cur->right = new Node(value); 
+                return; 
+            }
+        }
+    }
+}
+```
+- If our tree is empty, allocate a new node and point the root pointer to it 
+
+- Start traversing down from the root of the tree 
+
+    - `for(;;)` is the same as an infinite loop 
+
+- If our value is already in the tree, then we're done, return 
+
+- If the value to insert is less than the current node's value, go left 
+
+- If there is a node to our left, advance to that node and continue
+
+    - Otherwise, we've found the proper spot for our new value 
+
+    - Add our value as the left child of the current node 
+
+- If the value we want to isnert is greater than the current node's value, then traverse/insert to the right 
+
+> As with BST Search, there is a **recursive version** of the Insertion algorithm too! 
+
+**Big-O of BST Insertion** 
+
+O(log2n)
+
+- We have to first use a binary serach to find where to insert out node and binary search is O(log2n)
+
+- Once we found the right spot, we can insert our new node in O(1) time 
+
+### Finding Min & Max of a BST 
+
+How do we find the minimum and maximum values in a BST? 
+
+> The minimum value is located at the left-most node 
+
+> The maximum value is located at the right-most node
+
+```
+int GetMin(node *pRoot)
+{
+    if (pRoot == nullptr)
+        return -1; //empty 
+
+    while (pRoot->left != nullptr)
+        pRoot = pRoot->left; 
+
+    return pRoot->value; 
+}
+```
+```
+int GetMax(Node *pRoot)
+{
+    if (pRoot = nullptr)
+        return -1; 
+
+    while (pRoot->right != nullptr)
+        pRoot = pRoot->right; 
+    
+    return pRoot->value; 
+}
+```
+
+**Big-O** 
+
+O(log2(n))
+
+- We just go to the bottom of the tree 
+
+Recursion 
+
+```
+int GetMin(node *pRoot)
+{
+    if (pRoot == nullptr)
+        return -1; //empty 
+
+    if (pRoot->left == nullptr)
+        return pRoot->value; 
+
+    return GetMin(pRoot->left); 
+}
+```
+```
+int GetMax(Node *pRoot)
+{
+    if (pRoot = nullptr)
+        return -1; 
+
+    if (pRoot->right == nullptr)
+        return pRoot->value; 
+    
+    return GetMax(pRoot->right); 
+}
+```
+
+### Printing a BST In Alphabetical Order 
+
+**In order traversal** 
+
+```
+void InOrder(Node* cur)
+{
+    if (cur == nullptr)
+        return; 
+
+    InOrder(cur->left); 
+    cout << cur->value; 
+    InOrder(cur->right); 
+}
+```
+
+**Big-O**: O(n) 
+
+- Since we have to visit and print all n items 
+
+### Freeing The Whole Tree 
+
+It's another traversal 
+s
+```
+void FreeTree(Node* cur)
+{
+    if (cur == nulltpr)
+        return; 
+    FreeTree(cur->left); //delete nodes in left sub-tree
+    FreeTree(cur->right); //delete nodes in right sub-tree
+    delete cur; //free current node 
+}
+```
+**Big-O**: O(n)
