@@ -535,3 +535,187 @@ void FreeTree(Node* cur)
 }
 ```
 **Big-O**: O(n)
+
+### Deleting a Node from a Binary Search Tree
+
+If we remove a node in the middle of our tree, we need to reorder many nodes to have a valid binary search tree 
+
+**High-level algorithm**
+
+Given a value V to delete from the tree 
+
+1. Find the value V in the tree, with a slightly-modified BST search 
+
+    - Use two pointers: a `cur` pointer & a `parent` pointer
+
+2. If the node was found, delete it from the tree, making sure to preserve its ordering 
+
+    - Three cases 
+
+**Algorithm** 
+
+Step 1: Searching for value V 
+
+1. `parent = nullptr`
+
+2. `cur = root`
+
+3. `while (cur != nullptr)`
+
+    a. `If (V == cur->value)` then we're done 
+    
+    b. `If (V < cur->value)` 
+
+    `parent = cur;`
+    
+    `cur = cur->left;`
+
+    c. `Else if (V > cur->value)`
+
+    `parent = cur;`
+
+    `cur = cur->right;`
+
+- Similar to traditional BST search, but **has a parent pointer** 
+
+- When we are done with our loop below, we want the **parent pointer** to point to the **node just above the target node** we want to delete 
+
+Step 2: Once we've found our target node, we have to delete it 
+
+1. Case 1: Our node is a leaf 
+
+    - Subcase 1: The target node is NOT the root node 
+
+        1. Unlink the parent node from the target node (`cur`) by setting the parent's appropriate link to `NULL` 
+
+            - If target node is parent node's right child, set `parent->right = nullptr`
+
+        2. Delete the target node `cur` 
+    
+
+    - Subcase 2: The target node IS the root node 
+
+        1. Set the root **pointer** to `NULL` 
+
+        2. Then delete the target node `cur` 
+
+2. Case 2: Our node has one child 
+
+    - Subcase 1: The target node is NOT the root node 
+
+        1. Relink the parent node to the target node's only child 
+
+        2. Then delete the target node `cur` 
+
+    - Subcase 2: The target node IS the root node 
+
+        1. Relink the root pointer to the target node's only child 
+
+        2. Delete the target node `cur` 
+
+3. Case 3: Our node has two children 
+
+    - We need to find a replacement for our target node that still leaves the BST consistent, we can't just pick some arbitary node and move it up into the vacated slot 
+
+    - We **don't actually delete the node itself**, we **replace its value** with one from **another node** 
+
+    - Replace `cur` with either: 
+
+        1.  `cur`'s left subtree's largest-valued child 
+
+        2. `cur`'s right subtree's smallest-valued child 
+
+        - Both of these are either a leaf or have just one child 
+
+            - We found the left subtree's max value by going all the way to the right
+
+                - By definition it can't have a right child 
+
+                - Either has a left child or no children at all 
+            
+            - For smallest value in right subtree, by def cannot have a left child 
+
+        - Pick one, copy its value up, then delete that node 
+
+    - Delete this node with above 1 or 2 methods 
+
+--- 
+
+## Appications of BST 
+
+### STL map and set
+
+Map and set use a type of special balanced BST to store the items 
+
+### Huffman Encoding 
+
+Huffman Encoding is a data compression technique that can be used to compress and decompress files 
+
+**ASCII** 
+
+Each character stored as a number, characters are stored in the computer's memory as numbers 
+
+**High level Algorithm** 
+
+1. Compute the frequency of each character in the file.dat 
+
+2. Build a Huffman tree (a binary tree) based on these frequencies 
+
+    - Create a binary tree lead node for each entry in our table, but don't insert any of these into a tree! 
+
+    - Build a binary tree from the leaves 
+
+        - While we have more than one node left 
+
+            1. Find the two nodes with lowest frequencies 
+
+            2. Create a new parent node 
+
+            3. Link the parent to each of the children 
+
+            4. Set the parent's total frequency equal to the sum of its children's frequencies 
+
+            5. Place the new parent node in our grouping 
+
+    - Now label each left edge with a "0" and each right edge with a "1" 
+
+        - Now we can determine the new bit-encoding for each character 
+
+        - The bit encoding for a character is the path of 0's and 1's that you take from the root of the tree to the character of interest 
+
+3. Use this binary tree to convert the original file's contents to a more compressed form 
+
+    - Find the seqeucne of bits for each char in the message 
+
+4. Save the converted (compressed) data to a file 
+
+    - The data + some meta data to tell machine the specifications of the encoding 
+
+**Decoding** 
+
+1. Extract the encoding scheme from the compressed file 
+
+2. Build a Huffman tree based on the encodings 
+
+3. Use this binary tree to convert the compressed file's content back to the original characters 
+
+4. Save the converted (uncompressed) data to a file 
+
+--- 
+
+## Balanced Search Trees 
+
+Ensure all insertions, searches, and deletions would be O(logn)
+
+Everytime you add/delete a value, they automatically shift the nodes around so the tree is balanced 
+
+### AVL Tree 
+
+Tracks the height of ALL subtrees in the BST 
+
+After an insertion/deletion, if the height of the subtrees under any node is different by more than one level (e.g. right subtree has height 5, left subtree has height 3)
+
+- Then the AVL algorithm shifts the nodes around to maintain balance 
+
+> Balanced BSTs are always O(log2N) for insertion and deletion 
+
